@@ -1,0 +1,27 @@
+{
+  "name": "latexmk-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for the latexmk LaTeX build tool",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "latexmk-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "bun run src/index.ts",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": ["mcp", "latex", "latexmk", "tex"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -22,6 +22,7 @@
 /tmp/latexmk-mcp-*/
 
 # Bun/Node
+.npmrc
 bun.lockb
 .bun-cache/
 dist/

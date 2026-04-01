@@ -147,7 +147,7 @@ function buildLatexmkArgs(opts: {
   return [...args, ...opts.extraArgs];
 }
 
-function parseLatexLog(log: string): {
+export function parseLatexLog(log: string): {
   errors: string[];
   warnings: string[];
   info: string[];
@@ -168,7 +168,7 @@ function parseLatexLog(log: string): {
         ctx.push(lines[++i]!.trim());
       }
       errors.push(ctx.join(" "));
-    } else if (/^(LaTeX|Package|Class) Warning/i.test(line)) {
+    } else if (/(?:LaTeX|Package|Class).*?Warning/i.test(line)) {
       warnings.push(line);
     } else if (line.startsWith("Latexmk:")) {
       info.push(line);
@@ -665,7 +665,9 @@ async function main() {
   console.error("latexmk MCP server running on stdio");
 }
 
-main().catch((err) => {
-  console.error("Fatal:", err);
-  process.exit(1);
-});
+if (process.env["NODE_ENV"] !== "test" && import.meta.url.endsWith(process.argv[1] ?? "")) {
+  main().catch((err) => {
+    console.error("Fatal:", err);
+    process.exit(1);
+  });
+}

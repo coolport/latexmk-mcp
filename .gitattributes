@@ -1,0 +1,5 @@
+# Force ignore build artifacts and lockfiles in stats
+dist/* linguist-vendored
+bun.lock linguist-generated
+
+*.ts linguist-language=TypeScript

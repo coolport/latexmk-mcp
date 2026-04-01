@@ -11,6 +11,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "bun run src/index.ts",
+    "test": "bun test",
     "prepublishOnly": "bun run build"
   },
   "keywords": ["mcp", "latex", "latexmk", "tex"],

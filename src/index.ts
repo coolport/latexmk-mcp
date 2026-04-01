@@ -37,11 +37,15 @@ const CompileSchema = z.object({
   working_dir: z.string().optional().describe("Working directory (defaults to system temp)"),
 });
 
+type CompileOptions = z.infer<typeof CompileSchema>;
+
 const CleanSchema = z.object({
   working_dir: z.string().describe("Directory containing the LaTeX build artifacts to clean"),
   job_name: z.string().optional().describe("Specific job name (base filename without extension)"),
   clean_all: z.boolean().default(false).describe("Use -C (remove output files too) instead of -c"),
 });
+
+type CleanOptions = z.infer<typeof CleanSchema>;
 
 const PreviewSchema = z.object({
   tex_content: z.string().optional().describe("LaTeX source content"),
@@ -53,6 +57,8 @@ const PreviewSchema = z.object({
   working_dir: z.string().optional().describe("Working directory"),
 });
 
+type PreviewOptions = z.infer<typeof PreviewSchema>;
+
 const CheckSchema = z.object({
   working_dir: z.string().optional().describe("Directory to check for latexmk availability"),
 });
@@ -62,6 +68,8 @@ const ListDependenciesSchema = z.object({
   file_path: z.string().optional().describe("Absolute path to an existing .tex file"),
   working_dir: z.string().optional().describe("Working directory"),
 });
+
+type ListDependenciesOptions = z.infer<typeof ListDependenciesSchema>;
 
 // Helpers
 
@@ -150,14 +158,14 @@ function parseLatexLog(log: string): {
   const info: string[] = [];
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+    const line = lines[i]?.trim();
     if (!line) continue;
 
     if (/^!(?: LaTeX| Package| Class)? Error/i.test(line)) {
       // Collect multi-line error context
       const ctx = [line];
-      while (i + 1 < lines.length && lines[i + 1].startsWith(" ")) {
-        ctx.push(lines[++i].trim());
+      while (i + 1 < lines.length && lines[i + 1]?.startsWith(" ")) {
+        ctx.push(lines[++i]!.trim());
       }
       errors.push(ctx.join(" "));
     } else if (/^(LaTeX|Package|Class) Warning/i.test(line)) {
@@ -173,7 +181,7 @@ function parseLatexLog(log: string): {
 // Tool Handlers
 
 async function handleCompile(rawArgs: unknown) {
-  const args = CompileSchema.parse(rawArgs);
+  const args: CompileOptions = CompileSchema.parse(rawArgs);
 
   if (!args.tex_content && !args.file_path) {
     throw new Error("Either tex_content or file_path must be provided.");
@@ -235,11 +243,6 @@ async function handleCompile(rawArgs: unknown) {
     outputExists = true;
   } catch { /* noop */ }
 
-  // Clean up temp dir metadata if we created it
-  if (ownDir) {
-    // Leave the directory for the user to read output, surface the path
-  }
-
   return {
     success: exitCode === 0 && outputExists,
     exit_code: exitCode,
@@ -254,7 +257,7 @@ async function handleCompile(rawArgs: unknown) {
 }
 
 async function handleClean(rawArgs: unknown) {
-  const args = CleanSchema.parse(rawArgs);
+  const args: CleanOptions = CleanSchema.parse(rawArgs);
   const flag = args.clean_all ? "-C" : "-c";
 
   const lmkArgs = [flag];
@@ -289,7 +292,7 @@ async function handleClean(rawArgs: unknown) {
 
 async function handleDraftCompile(rawArgs: unknown) {
   // Fast single-pass compile to check for errors quickly (no reruns)
-  const args = PreviewSchema.parse(rawArgs);
+  const args: PreviewOptions = PreviewSchema.parse(rawArgs);
 
   if (!args.tex_content && !args.file_path) {
     throw new Error("Either tex_content or file_path must be provided.");
@@ -389,7 +392,7 @@ async function handleCheck(_rawArgs: unknown) {
 }
 
 async function handleListDependencies(rawArgs: unknown) {
-  const args = ListDependenciesSchema.parse(rawArgs);
+  const args: ListDependenciesOptions = ListDependenciesSchema.parse(rawArgs);
 
   if (!args.tex_content && !args.file_path) {
     throw new Error("Either tex_content or file_path must be provided.");
@@ -437,7 +440,10 @@ async function handleListDependencies(rawArgs: unknown) {
   const depRegex = /^\s{2,}(.+\.(?:tex|bib|sty|cls|clo|def|cfg|fd|enc|tfm|pfb|png|jpg|pdf|eps|svg))\s*\\?$/gim;
   let match;
   while ((match = depRegex.exec(stdout)) !== null) {
-    deps.push(match[1].trim());
+    const dep = match[1];
+    if (dep) {
+      deps.push(dep.trim());
+    }
   }
 
   return {

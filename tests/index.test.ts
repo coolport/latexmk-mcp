@@ -1,5 +1,5 @@
 import { expect, test, describe } from "bun:test";
-import { parseLatexLog } from "../src/index.ts";
+import { parseLatexLog } from "../src/parser.ts";
 
 describe("parseLatexLog", () => {
   test("should identify LaTeX errors with source metadata", () => {

@@ -20,7 +20,6 @@ import {
   handleWatchStop,
   handleWriteConfig,
 } from "./handlers.js";
-export { parseLatexLog } from "./parser.js";
 
 // Tool Definitions
 
@@ -305,7 +304,7 @@ const TOOLS: Tool[] = [
 // Server
 
 const server = new Server(
-  { name: "latexmk-mcp", version: "2.0.0" },
+  { name: "latexmk-mcp", version: "2.0.2" },
   { capabilities: { tools: {} },
     instructions: "Compile, clean, watch, and inspect LaTeX documents using latexmk."
   }
@@ -377,12 +376,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("latexmk MCP server v2.0.0 running on stdio");
+  console.error("latexmk MCP server v2.0.2 running on stdio");
 }
 
-if (process.env["NODE_ENV"] !== "test" && import.meta.url.endsWith(process.argv[1] ?? "")) {
-  main().catch((err) => {
-    console.error("Fatal:", err);
-    process.exit(1);
-  });
-}
+main().catch((err) => {
+  console.error("Fatal:", err);
+  process.exit(1);
+});

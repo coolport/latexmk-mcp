@@ -7,7 +7,7 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that e
 ## Prerequisites
 
 - **Node.js** 18+
-- **latexmk** installed and on `$PATH` (usually ships with TeX Live or MiKTeX)
+- **latexmk** installed and on `$PATH` (usually ships with major TeX distributions such as TeX Live or MiKTeX)
 - A TeX distribution with your required engines (`pdflatex`, `xelatex`, `lualatex`, …)
 
 ```bash
@@ -23,31 +23,13 @@ sudo pacman -S texlive-most
 
 ---
 
-## Installation & Build
+## Installation
 
 ```bash
-git clone <this-repo>
-cd latexmk-mcp
-npm install
-npm run build          # outputs to dist/
+npx latexmk-mcp
 ```
 
----
-
-## Running
-
-```bash
-# Direct
-node dist/index.js
-
-# Via npm
-npm start
-
-# During development (no build step)
-npm run dev
-```
-
-The server communicates over **stdio** (standard MCP transport).
+This is the standard MCP usage pattern: no global install is required. `npx` downloads the published package and runs the stdio server on demand.
 
 ---
 
@@ -59,12 +41,14 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 {
   "mcpServers": {
     "latexmk": {
-      "command": "node",
-      "args": ["/absolute/path/to/latexmk-mcp/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "latexmk-mcp"]
     }
   }
 }
 ```
+
+The server communicates over **stdio** (standard MCP transport).
 
 ---
 
@@ -155,9 +139,13 @@ Extract citation keys from LaTeX source and optionally compare them to a `.bib` 
 ## Development
 
 ```bash
-npm run dev       # run with tsx (no build needed)
-npm run build     # compile TypeScript → dist/
-npm start         # run compiled output
+git clone <this-repo>
+cd latexmk-mcp
+npm install
+bun run dev       # run directly from src/index.ts
+bun test          # run tests
+bun run build     # compile TypeScript -> dist/
+node dist/index.js
 ```
 
 ---

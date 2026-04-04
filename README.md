@@ -2,21 +2,27 @@
 
 A [Model Context Protocol](https://modelcontextprotocol.io/) server that exposes [latexmk](https://mgeier.github.io/latexmk.html) tooling as MCP tools, allowing any MCP-compatible client or agent to compile, check, clean, and inspect LaTeX documents.
 
+
+![NPM Version](https://img.shields.io/npm/v/latexmk-mcp)
+![NPM Downloads](https://img.shields.io/npm/d18m/latexmk-mcp)
+![NPM License](https://img.shields.io/npm/l/latexmk-mcp)
+![CI](https://github.com/coolport/latexmk-mcp/actions/workflows/publish.yml/badge.svg)
+
 ## Prerequisites
 
 - **Node.js** 18+
-- **latexmk** installed and on `$PATH` (usually ships with major TeX distributions such as TeX Live or MiKTeX)
-- A TeX distribution with your required engines (`pdflatex`, `xelatex`, `lualatex`, …)
+- **latexmk** on `$PATH` — bundled with most TeX distributions (TeX Live, MiKTeX)
+- A TeX distribution with the engines and packages your project requires
 
 ```bash
 # Debian/Ubuntu
 sudo apt install latexmk texlive-full
 
-# macOS (Homebrew + MacTeX)
+# macOS
 brew install --cask mactex
 
 # Arch Linux
-sudo pacman -S texlive-most
+sudo pacman -S texlive
 ```
 
 ## Usage

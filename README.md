@@ -1,8 +1,6 @@
 # latexmk-mcp
 
-A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that exposes the [`latexmk`](https://personal.psu.edu/~jcc8/software/latexmk/) LaTeX build tool as MCP tools — letting any MCP-compatible AI assistant compile, check, clean, and inspect LaTeX documents.
-
----
+A [Model Context Protocol](https://modelcontextprotocol.io/) server that exposes [latexmk](https://mgeier.github.io/latexmk.html) tooling as MCP tools, allowing any MCP-compatible client or agent to compile, check, clean, and inspect LaTeX documents.
 
 ## Prerequisites
 
@@ -21,21 +19,9 @@ brew install --cask mactex
 sudo pacman -S texlive-most
 ```
 
----
+## Usage
 
-## Installation
-
-```bash
-npx latexmk-mcp
-```
-
-This is the standard MCP usage pattern: no global install is required. `npx` downloads the published package and runs the stdio server on demand.
-
----
-
-## Claude Desktop Configuration
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+Simply add this to your MCP client configuration:
 
 ```json
 {
@@ -48,107 +34,118 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 }
 ```
 
-The server communicates over **stdio** (standard MCP transport).
+The example above applies for clients such as Gemini CLI, Claude Desktop, etc. The `-y` flag is omittable for brevity, but is best kept in for unexpected scenarios. Additionally, some tools allow you to add MCP servers imperatively:
 
----
+```bash
+codex mcp add latexmk -- npx -y latexmk-mcp
+```
 
-## Tools
+### Global install via npm
 
-### `latexmk_compile`
-Full compile of a LaTeX document with configurable engine, output format, bibliography processor, and latexmk flags.
+Alternatively, you can install the package globally and invoke it directly without `npx`:
 
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `tex_content` | string | — | Raw LaTeX source (mutually exclusive with `file_path`) |
-| `file_path` | string | — | Path to existing `.tex` file |
-| `output_format` | `pdf\|dvi\|ps\|xdv` | `pdf` | Target format |
-| `engine` | `pdflatex\|xelatex\|lualatex\|latex\|pdftex` | `pdflatex` | TeX engine |
-| `bibtex` | `bibtex\|biber\|none` | `none` | Bibliography processor |
-| `shell_escape` | boolean | `false` | Enable `--shell-escape` |
-| `synctex` | boolean | `false` | Generate SyncTeX data |
-| `extra_args` | string[] | `[]` | Extra latexmk CLI flags |
-| `working_dir` | string | temp dir | Build directory |
-| `return_pdf` | boolean | `false` | Return compiled PDF as base64 when building PDF output |
+```bash
+npm install -g latexmk-mcp
+which latexmk-mcp  # note the absolute path
+```
 
-**Returns:** `success`, `exit_code`, `output_file`, `page_count`, structured `errors[]`, structured `warnings[]`, `missing_packages[]`, `install_hints[]`, `working_dir`, `stdout`, `stderr`, and optional `pdf_base64`.
+Then point your MCP client at the resolved binary using `node`:
 
----
-
-### `latexmk_draft_compile`
-Fast single-pass compile (no reruns, no bibliography) — ideal for quick syntax/error checks while editing.
-
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `tex_content` | string | — | Raw LaTeX source |
-| `file_path` | string | — | Path to `.tex` file |
-| `engine` | string | `pdflatex` | TeX engine |
-| `working_dir` | string | temp dir | Build directory |
-
-**Returns:** `success`, structured `errors[]`, structured `warnings[]`, `missing_packages[]`, `install_hints[]`, `stdout`, `stderr`.
-
----
-
-### `latexmk_clean`
-Remove build artifacts using `latexmk -c` (auxiliaries only) or `latexmk -C` (auxiliaries + output files).
-
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `working_dir` | string | **required** | Directory to clean |
-| `job_name` | string | — | Clean a specific job only |
-| `clean_all` | boolean | `false` | `-C` instead of `-c` |
-
----
-
-### `latexmk_check`
-Detect whether `latexmk` is installed and which TeX engines are available on the system.
-
-**Returns:** `latexmk_available`, `latexmk_version`, `latexmk_path`, `engines_available` map.
-
----
-
-### `latexmk_list_dependencies`
-List all file dependencies of a document (included `.tex` files, `.bib` files, packages, images…) via `latexmk -deps`.
-
-| Parameter | Type | Description |
-|---|---|---|
-| `tex_content` | string | Raw LaTeX source |
-| `file_path` | string | Path to `.tex` file |
-| `working_dir` | string | Working directory |
-
-**Returns:** `dependencies[]` (deduplicated list of file paths).
-
----
-
-### `latexmk_watch_start` / `latexmk_watch_stop` / `latexmk_watch_list`
-Manage background `latexmk -pvc` watch sessions. Start returns a `session_id`; stop terminates it; list shows active sessions with PID, job name, and start time.
-
----
-
-### `latexmk_write_config` / `latexmk_read_config`
-Write or inspect `.latexmkrc` files. The write tool can set engine, output mode, shell escape, extra `pdflatex` args, and custom Perl rules.
-
----
-
-### `latexmk_list_citations`
-Extract citation keys from LaTeX source and optionally compare them to a `.bib` file.
-
-**Returns:** `cited_keys[]`, `cited_count`, and when `bib_path` is provided, `bib_entries[]`, `missing_from_bib[]`, and `unused_in_bib[]`.
-
----
+```json
+{
+  "mcpServers": {
+    "latexmk": {
+      "command": "node",
+      "args": ["/absolute/path/to/node/vX.Y.Z/bin/latexmk-mcp"]
+    }
+  }
+}
+```
 
 ## Development
 
 ```bash
-git clone <this-repo>
-cd latexmk-mcp
-npm install
-bun run dev       # run directly from src/index.ts
-bun test          # run tests
-bun run build     # compile TypeScript -> dist/
+bun install
+bun test
+bun run build
 node dist/index.js
 ```
 
----
+## Tools
+
+### `latexmk_compile`
+
+Full compile of a LaTeX document with configurable engine, output format, bibliography processor, and latexmk flags.
+
+| Parameter       | Type                                         | Default    | Description                                            |
+| --------------- | -------------------------------------------- | ---------- | ------------------------------------------------------ |
+| `tex_content`   | string                                       | —          | Raw LaTeX source (mutually exclusive with `file_path`) |
+| `file_path`     | string                                       | —          | Path to existing `.tex` file                           |
+| `output_format` | `pdf\|dvi\|ps\|xdv`                          | `pdf`      | Target format                                          |
+| `engine`        | `pdflatex\|xelatex\|lualatex\|latex\|pdftex` | `pdflatex` | TeX engine                                             |
+| `bibtex`        | `bibtex\|biber\|none`                        | `none`     | Bibliography processor                                 |
+| `shell_escape`  | boolean                                      | `false`    | Enable `--shell-escape`                                |
+| `synctex`       | boolean                                      | `false`    | Generate SyncTeX data                                  |
+| `extra_args`    | string[]                                     | `[]`       | Extra latexmk CLI flags                                |
+| `working_dir`   | string                                       | temp dir   | Build directory                                        |
+| `return_pdf`    | boolean                                      | `false`    | Return compiled PDF as base64 when building PDF output |
+
+**Returns:** `success`, `exit_code`, `output_file`, `page_count`, structured `errors[]`, structured `warnings[]`, `missing_packages[]`, `install_hints[]`, `working_dir`, `stdout`, `stderr`, and optional `pdf_base64`.
+
+### `latexmk_draft_compile`
+
+Fast single-pass compile (no reruns, no bibliography) — ideal for quick syntax/error checks while editing.
+
+| Parameter     | Type   | Default    | Description         |
+| ------------- | ------ | ---------- | ------------------- |
+| `tex_content` | string | —          | Raw LaTeX source    |
+| `file_path`   | string | —          | Path to `.tex` file |
+| `engine`      | string | `pdflatex` | TeX engine          |
+| `working_dir` | string | temp dir   | Build directory     |
+
+**Returns:** `success`, structured `errors[]`, structured `warnings[]`, `missing_packages[]`, `install_hints[]`, `stdout`, `stderr`.
+
+### `latexmk_clean`
+
+Remove build artifacts using `latexmk -c` (auxiliaries only) or `latexmk -C` (auxiliaries + output files).
+
+| Parameter     | Type    | Default      | Description               |
+| ------------- | ------- | ------------ | ------------------------- |
+| `working_dir` | string  | **required** | Directory to clean        |
+| `job_name`    | string  | —            | Clean a specific job only |
+| `clean_all`   | boolean | `false`      | `-C` instead of `-c`      |
+
+### `latexmk_check`
+
+Detect whether `latexmk` is installed and which TeX engines are available on the system.
+
+**Returns:** `latexmk_available`, `latexmk_version`, `latexmk_path`, `engines_available` map.
+
+### `latexmk_list_dependencies`
+
+List all file dependencies of a document (included `.tex` files, `.bib` files, packages, images…) via `latexmk -deps`.
+
+| Parameter     | Type   | Description         |
+| ------------- | ------ | ------------------- |
+| `tex_content` | string | Raw LaTeX source    |
+| `file_path`   | string | Path to `.tex` file |
+| `working_dir` | string | Working directory   |
+
+**Returns:** `dependencies[]` (deduplicated list of file paths).
+
+### `latexmk_watch_start` / `latexmk_watch_stop` / `latexmk_watch_list`
+
+Manage background `latexmk -pvc` watch sessions. Start returns a `session_id`; stop terminates it; list shows active sessions with PID, job name, and start time.
+
+### `latexmk_write_config` / `latexmk_read_config`
+
+Write or inspect `.latexmkrc` files. The write tool can set engine, output mode, shell escape, extra `pdflatex` args, and custom Perl rules.
+
+### `latexmk_list_citations`
+
+Extract citation keys from LaTeX source and optionally compare them to a `.bib` file.
+
+**Returns:** `cited_keys[]`, `cited_count`, and when `bib_path` is provided, `bib_entries[]`, `missing_from_bib[]`, and `unused_in_bib[]`.
 
 ## License
 

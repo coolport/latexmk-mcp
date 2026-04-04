@@ -1,6 +1,6 @@
 {
   "name": "latexmk-mcp",
-  "version": "1.1.1",
+  "version": "1.1.3",
   "description": "MCP server for the latexmk LaTeX build tool",
   "type": "module",
   "main": "dist/index.js",

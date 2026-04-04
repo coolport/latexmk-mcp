@@ -4,7 +4,7 @@
     "lib": ["ESNext"],
     "target": "ESNext",
     "moduleDetection": "force",
-    "allowJs": true,
+    "allowJs": false,
 
     /* Building for npm */
     "module": "NodeNext",
@@ -12,7 +12,7 @@
     "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
-    "noEmit": false, // Enabled for npm builds
+    "noEmit": false, 
 
     /* Best practices */
     "strict": true,

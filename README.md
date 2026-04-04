@@ -84,8 +84,9 @@ Full compile of a LaTeX document with configurable engine, output format, biblio
 | `synctex` | boolean | `false` | Generate SyncTeX data |
 | `extra_args` | string[] | `[]` | Extra latexmk CLI flags |
 | `working_dir` | string | temp dir | Build directory |
+| `return_pdf` | boolean | `false` | Return compiled PDF as base64 when building PDF output |
 
-**Returns:** `success`, `exit_code`, `output_file` path, `errors[]`, `warnings[]`, `working_dir`, `stdout`, `stderr`.
+**Returns:** `success`, `exit_code`, `output_file`, `page_count`, structured `errors[]`, structured `warnings[]`, `missing_packages[]`, `install_hints[]`, `working_dir`, `stdout`, `stderr`, and optional `pdf_base64`.
 
 ---
 
@@ -99,7 +100,7 @@ Fast single-pass compile (no reruns, no bibliography) — ideal for quick syntax
 | `engine` | string | `pdflatex` | TeX engine |
 | `working_dir` | string | temp dir | Build directory |
 
-**Returns:** `success`, `errors[]`, `warnings[]`, `stdout`, `stderr`.
+**Returns:** `success`, structured `errors[]`, structured `warnings[]`, `missing_packages[]`, `install_hints[]`, `stdout`, `stderr`.
 
 ---
 
@@ -131,6 +132,23 @@ List all file dependencies of a document (included `.tex` files, `.bib` files, p
 | `working_dir` | string | Working directory |
 
 **Returns:** `dependencies[]` (deduplicated list of file paths).
+
+---
+
+### `latexmk_watch_start` / `latexmk_watch_stop` / `latexmk_watch_list`
+Manage background `latexmk -pvc` watch sessions. Start returns a `session_id`; stop terminates it; list shows active sessions with PID, job name, and start time.
+
+---
+
+### `latexmk_write_config` / `latexmk_read_config`
+Write or inspect `.latexmkrc` files. The write tool can set engine, output mode, shell escape, extra `pdflatex` args, and custom Perl rules.
+
+---
+
+### `latexmk_list_citations`
+Extract citation keys from LaTeX source and optionally compare them to a `.bib` file.
+
+**Returns:** `cited_keys[]`, `cited_count`, and when `bib_path` is provided, `bib_entries[]`, `missing_from_bib[]`, and `unused_in_bib[]`.
 
 ---
 

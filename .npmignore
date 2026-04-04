@@ -1,0 +1,18 @@
+# Source and tests
+src/
+tests/
+tsconfig.json
+
+notes/
+*.md
+
+# Local tooling and caches
+.codex
+.git/
+.gitignore
+.gitattributes
+.npmrc
+node_modules/
+
+# Development artifacts
+bun.lock

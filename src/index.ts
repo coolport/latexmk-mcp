@@ -12,7 +12,13 @@ import {
   handleClean,
   handleCompile,
   handleDraftCompile,
+  handleListCitations,
   handleListDependencies,
+  handleReadConfig,
+  handleWatchList,
+  handleWatchStart,
+  handleWatchStop,
+  handleWriteConfig,
 } from "./handlers.js";
 export { parseLatexLog } from "./parser.js";
 
@@ -170,14 +176,138 @@ const TOOLS: Tool[] = [
       oneOf: [{ required: ["tex_content"] }, { required: ["file_path"] }],
     },
   },
+  {
+    name: "latexmk_watch_start",
+    description:
+      "Start a background latexmk watch process (-pvc) that recompiles automatically on file changes. Returns a session_id.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        file_path: {
+          type: "string",
+          description: "Absolute path to the root .tex file to watch",
+        },
+        engine: {
+          type: "string",
+          enum: ["pdflatex", "xelatex", "lualatex", "latex"],
+          default: "pdflatex",
+        },
+        working_dir: {
+          type: "string",
+          description: "Working directory. Defaults to the source file directory.",
+        },
+      },
+      required: ["file_path"],
+    },
+  },
+  {
+    name: "latexmk_watch_stop",
+    description: "Stop a running latexmk watch session by session_id.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        session_id: {
+          type: "string",
+          description: "Session ID returned by latexmk_watch_start.",
+        },
+      },
+      required: ["session_id"],
+    },
+  },
+  {
+    name: "latexmk_watch_list",
+    description: "List all currently active latexmk watch sessions.",
+    inputSchema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
+    name: "latexmk_write_config",
+    description: "Write a .latexmkrc config file to a project directory or globally to ~/.latexmkrc.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        working_dir: {
+          type: "string",
+          description: "Directory to write the project-level .latexmkrc into.",
+        },
+        engine: {
+          type: "string",
+          enum: ["pdflatex", "xelatex", "lualatex", "latex"],
+        },
+        output_format: {
+          type: "string",
+          enum: ["pdf", "dvi", "ps"],
+        },
+        shell_escape: {
+          type: "boolean",
+        },
+        extra_pdflatex_args: {
+          type: "string",
+          description: "Extra arguments to append to the pdflatex command.",
+        },
+        custom_rules: {
+          type: "string",
+          description: "Raw Perl lines to append to the generated config.",
+        },
+        global: {
+          type: "boolean",
+          default: false,
+          description: "Write to ~/.latexmkrc instead of the project directory.",
+        },
+      },
+      required: ["working_dir"],
+    },
+  },
+  {
+    name: "latexmk_read_config",
+    description: "Read the active .latexmkrc config files from the project and home directory.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        working_dir: {
+          type: "string",
+          description: "Optional project directory to check first.",
+        },
+      },
+    },
+  },
+  {
+    name: "latexmk_list_citations",
+    description:
+      "Extract all citation keys from a LaTeX document and optionally cross-reference them against a .bib file.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tex_content: {
+          type: "string",
+          description: "LaTeX source content",
+        },
+        file_path: {
+          type: "string",
+          description: "Absolute path to an existing .tex file",
+        },
+        bib_path: {
+          type: "string",
+          description: "Absolute path to a .bib file to cross-reference.",
+        },
+        working_dir: {
+          type: "string",
+          description: "Optional working directory for symmetry with other tools.",
+        },
+      },
+      oneOf: [{ required: ["tex_content"] }, { required: ["file_path"] }],
+    },
+  },
 ];
 
 // Server
 
 const server = new Server(
-  { name: "latexmk-mcp", version: "1.0.0" },
+  { name: "latexmk-mcp", version: "2.0.0" },
   { capabilities: { tools: {} },
-    instructions: "Compile, clean, and inspect LaTeX documents using latexmk."
+    instructions: "Compile, clean, watch, and inspect LaTeX documents using latexmk."
   }
 
 );
@@ -205,6 +335,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "latexmk_list_dependencies":
         result = await handleListDependencies(args);
         break;
+      case "latexmk_watch_start":
+        result = await handleWatchStart(args);
+        break;
+      case "latexmk_watch_stop":
+        result = await handleWatchStop(args);
+        break;
+      case "latexmk_watch_list":
+        result = await handleWatchList();
+        break;
+      case "latexmk_write_config":
+        result = await handleWriteConfig(args);
+        break;
+      case "latexmk_read_config":
+        result = await handleReadConfig(args);
+        break;
+      case "latexmk_list_citations":
+        result = await handleListCitations(args);
+        break;
       default:
         return {
           content: [{ type: "text", text: `Unknown tool: ${name}` }],
@@ -229,7 +377,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("latexmk MCP server running on stdio");
+  console.error("latexmk MCP server v2.0.0 running on stdio");
 }
 
 if (process.env["NODE_ENV"] !== "test" && import.meta.url.endsWith(process.argv[1] ?? "")) {

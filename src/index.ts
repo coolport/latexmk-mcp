@@ -22,7 +22,7 @@ const TOOLS: Tool[] = [
   {
     name: "latexmk_compile",
     description:
-      "Compile a LaTeX document using latexmk. Accepts raw LaTeX source or a path to an existing .tex file. Returns compile success/failure, errors, warnings, and the path to the output file.",
+      "Compile a LaTeX document using latexmk. Accepts raw LaTeX source or a path to an existing .tex file. Returns structured errors, warnings, missing package hints, page count, and the output file path.",
     inputSchema: {
       type: "object",
       properties: {
@@ -71,6 +71,11 @@ const TOOLS: Tool[] = [
         working_dir: {
           type: "string",
           description: "Working directory. Defaults to a fresh temp directory.",
+        },
+        return_pdf: {
+          type: "boolean",
+          default: false,
+          description: "Include the compiled PDF as base64 in the response when output_format is pdf.",
         },
       },
       oneOf: [{ required: ["tex_content"] }, { required: ["file_path"] }],

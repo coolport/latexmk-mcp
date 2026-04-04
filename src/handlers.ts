@@ -27,6 +27,7 @@ export const CompileSchema = z.object({
   synctex: z.boolean().default(false).describe("Generate SyncTeX data"),
   extra_args: z.array(z.string()).default([]).describe("Extra latexmk CLI arguments"),
   working_dir: z.string().optional().describe("Working directory (defaults to system temp)"),
+  return_pdf: z.boolean().default(false).describe("Include compiled PDF as base64 in response"),
 });
 
 type CompileOptions = z.infer<typeof CompileSchema>;
@@ -196,10 +197,16 @@ export async function handleCompile(rawArgs: unknown) {
         : "pdf";
   const outputFile = path.join(workDir, `${jobName}.${outputExt}`);
   let outputExists = false;
+  let pdf_base64: string | null = null;
 
   try {
     await fs.access(outputFile);
     outputExists = true;
+
+    if (args.return_pdf && outputExt === "pdf") {
+      const pdfBuffer = await fs.readFile(outputFile);
+      pdf_base64 = pdfBuffer.toString("base64");
+    }
   } catch {
     // noop
   }
@@ -209,11 +216,15 @@ export async function handleCompile(rawArgs: unknown) {
     exit_code: exitCode,
     output_file: outputExists ? outputFile : null,
     working_dir: workDir,
+    page_count: parsed.page_count,
     errors: parsed.errors,
     warnings: parsed.warnings,
+    missing_packages: parsed.missing_packages,
+    install_hints: parsed.missing_packages.map((pkg) => `tlmgr install ${pkg}`),
     latexmk_info: parsed.info,
     stdout: stdout.slice(0, 4000),
     stderr: stderr.slice(0, 2000),
+    ...(pdf_base64 ? { pdf_base64 } : {}),
   };
 }
 
@@ -307,6 +318,8 @@ export async function handleDraftCompile(rawArgs: unknown) {
     working_dir: workDir,
     errors: parsed.errors,
     warnings: parsed.warnings,
+    missing_packages: parsed.missing_packages,
+    install_hints: parsed.missing_packages.map((pkg) => `tlmgr install ${pkg}`),
     stdout: stdout.slice(0, 4000),
     stderr: stderr.slice(0, 2000),
   };

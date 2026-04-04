@@ -21,7 +21,7 @@ jobs:
       - run: bun install
 
       - name: Set version from tag
-        run: npm version ${GITHUB_REF_NAME} --no-git-tag-version
+        run: npm version ${GITHUB_REF_NAME} --no-git-tag-version || true
 
       - run: bun run build
 

@@ -1,11 +1,9 @@
 # latexmk-mcp
 
-A [Model Context Protocol](https://modelcontextprotocol.io/) server that exposes [latexmk](https://mgeier.github.io/latexmk.html) tooling as MCP tools, allowing any MCP-compatible client or agent to compile, check, clean, and inspect LaTeX documents.
-
+A Model Context Protocol server for latexmk that exposes LaTeX compilation, log parsing, dependency inspection, citation checking, and other utilities as MCP tools for any compatible AI agent or client.
 
 ![NPM Version](https://img.shields.io/npm/v/latexmk-mcp)
-![NPM Downloads](https://img.shields.io/npm/d18m/latexmk-mcp)
-![NPM License](https://img.shields.io/npm/l/latexmk-mcp)
+![NPM Downloads](https://img.shields.io/npm/d18m/latexmk-mcp?style=flat&color=%231082c2)
 ![CI](https://github.com/coolport/latexmk-mcp/actions/workflows/publish.yml/badge.svg)
 
 ## Prerequisites
@@ -27,7 +25,7 @@ sudo pacman -S texlive
 
 ## Usage
 
-Simply add this to your MCP client configuration:
+Add this to your MCP client configuration:
 
 ```json
 {
@@ -40,7 +38,7 @@ Simply add this to your MCP client configuration:
 }
 ```
 
-The example above applies for clients such as Gemini CLI, Claude Desktop, etc. The `-y` flag is omittable for brevity, but is best kept in for unexpected scenarios. Additionally, some tools allow you to add MCP servers imperatively:
+The example above applies for clients such as Gemini CLI, Claude Code, etc. Additionally, some tools allow you to add MCP servers imperatively:
 
 ```bash
 codex mcp add latexmk -- npx -y latexmk-mcp
@@ -55,7 +53,7 @@ npm install -g latexmk-mcp
 which latexmk-mcp  # note the absolute path
 ```
 
-Then point your MCP client at the resolved binary using `node`:
+Then point your MCP client at the local binary using `node`:
 
 ```json
 {
